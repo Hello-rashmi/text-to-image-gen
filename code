@@ -1,0 +1,33 @@
+# Install necessary packages
+!pip install torch torchvision torchaudio
+!pip install diffusers transformers accelerate matplotlib
+
+# Import required libraries
+import torch
+from torch import autocast
+from diffusers import StableDiffusionPipeline
+import matplotlib.pyplot as plt
+
+# Check and set device
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print("Using device:", device)
+
+# Load the pipeline (with appropriate precision and device)
+pipe = StableDiffusionPipeline.from_pretrained(
+    "CompVis/stable-diffusion-v1-4",
+    revision="fp16" if device == "cuda" else None,
+    torch_dtype=torch.float16 if device == "cuda" else torch.float32
+)
+pipe = pipe.to(device)
+
+# Prompt input and image generation loop
+for _ in range(3):  # You can change number of prompts here
+    textprompt = input("Enter your prompt: ")
+    with autocast(device_type=device):
+        result = pipe(textprompt, guidance_scale=8.5)
+        image = result.images[0]
+    
+    plt.imshow(image)
+    plt.axis("off")
+    plt.title(textprompt)
+    plt.show()
